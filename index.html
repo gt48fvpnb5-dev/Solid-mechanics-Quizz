@@ -348,7 +348,7 @@ function cardKey(qid,cid){return"q"+qid+"_c"+cid;}
 function isStarred(qid,cid){return!!starred[cardKey(qid,cid)];}
 function toggleStarCard(qid,cid){var k=cardKey(qid,cid);if(starred[k]){delete starred[k];}else{starred[k]=true;}saveStarred();}
 function totalStarCount(){return Object.keys(starred).length;}
-function typeset(el){if(window.MathJax&&MathJax.typesetPromise){if(MathJax.typesetClear){MathJax.typesetClear([el]);}MathJax.typesetPromise([el]).catch(function(){});}}
+function typeset(el){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([el]).catch(function(){});}}
 
 function buildHome(){
   var grid=document.getElementById("quizGrid");grid.innerHTML="";
@@ -391,8 +391,11 @@ function showCard(){
   var c=deck[current];
   var body=document.getElementById("cardBody");
   body.classList.remove("flipped");body.style.pointerEvents="";
-  var qEl=document.getElementById("cardQ");qEl.innerHTML=c.q;typeset(qEl);
-  var aEl=document.getElementById("cardA");aEl.innerHTML=c.a;typeset(aEl);
+  var qEl=document.getElementById("cardQ");qEl.innerHTML=c.q;
+  var aEl=document.getElementById("cardA");aEl.innerHTML=c.a;
+  if(window.MathJax&&MathJax.typesetPromise){
+    MathJax.typesetPromise([qEl,aEl]).catch(function(){});
+  }
   var sb=document.getElementById("starBtn2");
   if(isStarred(c.qid,c.cid)){sb.classList.add("starred");}else{sb.classList.remove("starred");}
   var mcqArea=document.getElementById("mcqArea");
@@ -461,7 +464,6 @@ function answerMCQ(idx,sc){
   if(idx!==sc){btns[idx].classList.add("wrong");}
   document.getElementById("cardBody").classList.add("flipped");
   document.getElementById("cardBody").style.pointerEvents="none";
-  typeset(document.getElementById("cardA"));
   document.getElementById("hintText").textContent=idx===sc?"Correct!":"Wrong - see the answer above";
   flipped=true;
   if(current===deck.length-1){document.getElementById("nextArrow").textContent="Done ✓";}
@@ -494,7 +496,6 @@ function submitCb(){
   res.textContent=allCorrect?"All correct!":"Some wrong - green=correct, red=wrong, orange=missed";
   document.getElementById("checkboxArea").appendChild(res);
   document.getElementById("cardBody").classList.add("flipped");
-  typeset(document.getElementById("cardA"));
   document.getElementById("hintText").textContent=allCorrect?"Perfect!":"See corrections above";
   flipped=true;
   if(current===deck.length-1){document.getElementById("nextArrow").textContent="Done ✓";}
