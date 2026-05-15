@@ -385,6 +385,8 @@ function startStudy(starsOnly){
 
 function showCard(){
   flipped=false;mcqDone=false;cbDone=false;
+  document.getElementById("nextArrow").textContent="→";
+  document.getElementById("nextArrow").innerHTML="&#8594;";
   var c=deck[current];
   var body=document.getElementById("cardBody");
   body.classList.remove("flipped");body.style.pointerEvents="";
@@ -442,7 +444,7 @@ function answerMCQ(idx,sc){
   typeset(document.getElementById("cardA"));
   document.getElementById("hintText").textContent=idx===sc?"Correct!":"Wrong - see the answer above";
   flipped=true;
-  if(current===deck.length-1){setTimeout(showFinish,1000);}
+  if(current===deck.length-1){document.getElementById("nextArrow").textContent="Done ✓";}
 }
 
 function toggleCb(idx){
@@ -475,11 +477,13 @@ function submitCb(){
   typeset(document.getElementById("cardA"));
   document.getElementById("hintText").textContent=allCorrect?"Perfect!":"See corrections above";
   flipped=true;
-  if(current===deck.length-1){setTimeout(showFinish,1000);}
+  if(current===deck.length-1){document.getElementById("nextArrow").textContent="Done ✓";}
 }
 
 function navigate(dir){
-  var next=current+dir;if(next<0||next>=deck.length)return;
+  var next=current+dir;
+  if(next<0)return;
+  if(next>=deck.length){showFinish();return;}
   current=next;showCard();
 }
 function toggleStar(){
