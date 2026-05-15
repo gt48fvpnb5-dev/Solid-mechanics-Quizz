@@ -392,7 +392,7 @@ function showCard(){
   var body=document.getElementById("cardBody");
   body.classList.remove("flipped");body.style.pointerEvents="";
   var qEl=document.getElementById("cardQ");qEl.innerHTML=c.q;typeset(qEl);
-  document.getElementById("cardA").innerHTML=c.a;
+  var aEl=document.getElementById("cardA");aEl.innerHTML=c.a;typeset(aEl);
   var sb=document.getElementById("starBtn2");
   if(isStarred(c.qid,c.cid)){sb.classList.add("starred");}else{sb.classList.remove("starred");}
   var mcqArea=document.getElementById("mcqArea");
