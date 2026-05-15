@@ -431,9 +431,18 @@ function handleCardClick(){
   if(flipping)return;
   if(deck[current]&&deck[current].type==="checkbox")return;
   flipping=true;
-  setTimeout(function(){flipping=false;},500);
-  if(flipped){flipped=false;document.getElementById("cardBody").classList.remove("flipped");document.getElementById("hintText").textContent="Click the card to reveal the answer";}
-  else{flipped=true;document.getElementById("cardBody").classList.add("flipped");typeset(document.getElementById("cardA"));document.getElementById("hintText").textContent="Click again to see the question";}
+  setTimeout(function(){flipping=false;},600);
+  if(flipped){
+    flipped=false;
+    document.getElementById("cardBody").classList.remove("flipped");
+    document.getElementById("hintText").textContent="Click the card to reveal the answer";
+  } else {
+    flipped=true;
+    document.getElementById("cardBody").classList.add("flipped");
+    document.getElementById("hintText").textContent="Click again to see the question";
+    // Delay typeset until after flip transition completes
+    setTimeout(function(){typeset(document.getElementById("cardA"));},460);
+  }
 }
 
 function answerMCQ(idx,sc){
@@ -520,6 +529,13 @@ function show(id){
 }
 
 buildHome();
+
+// iOS fix: prevent touchend from also firing click on the card
+document.getElementById("cardBody").addEventListener("touchend", function(e){
+  if(deck[current]&&deck[current].type==="checkbox")return;
+  e.preventDefault();
+  handleCardClick();
+}, {passive:false});
 
 document.addEventListener("keydown",function(e){
   var screen=document.querySelector(".screen.active");
