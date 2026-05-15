@@ -54,10 +54,10 @@ header{padding:20px 32px 0;}
 .progress-text{text-align:center;font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:16px;}
 
 /* CARD (flip) */
-.card-wrap{perspective:1000px;margin-bottom:16px;}
-.card-body{position:relative;width:100%;min-height:220px;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.4,0,.2,1);cursor:pointer;}
+.card-wrap{perspective:1000px;margin-bottom:16px;overflow:visible;}
+.card-body{position:relative;width:100%;min-height:220px;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.4,0,.2,1);cursor:pointer;overflow:visible;}
 .card-body.flipped{transform:rotateY(180deg);}
-.card-face{position:absolute;width:100%;min-height:220px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);box-shadow:0 2px 16px rgba(0,0,0,.07);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 36px;}
+.card-face{position:absolute;width:100%;min-height:220px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);box-shadow:0 2px 16px rgba(0,0,0,.07);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 36px;overflow:visible;}
 .card-back-face{transform:rotateY(180deg);background:var(--surface);align-items:flex-start;justify-content:center;}
 .face-label{position:absolute;top:14px;left:18px;font-size:10px;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
 .star-btn{position:absolute;top:10px;right:14px;background:none;border:none;cursor:pointer;font-size:20px;line-height:1;padding:4px;opacity:.4;transition:opacity .15s,transform .15s;pointer-events:auto;}
@@ -385,6 +385,7 @@ function startStudy(starsOnly){
 
 function showCard(){
   flipped=false;mcqDone=false;cbDone=false;flipping=false;
+  document.getElementById("cardBody").style.minHeight="";
   document.getElementById("nextArrow").textContent="→";
   document.getElementById("nextArrow").innerHTML="&#8594;";
   var c=deck[current];
@@ -440,8 +441,16 @@ function handleCardClick(){
     flipped=true;
     document.getElementById("cardBody").classList.add("flipped");
     document.getElementById("hintText").textContent="Click again to see the question";
-    // Delay typeset until after flip transition completes
-    setTimeout(function(){typeset(document.getElementById("cardA"));},460);
+    // After flip transition, adjust card-body height to fit back face content
+    setTimeout(function(){
+      var back = document.getElementById("backFace");
+      var body = document.getElementById("cardBody");
+      if(back && body){
+        var h = back.scrollHeight;
+        if(h > 220) body.style.minHeight = h + "px";
+      }
+      typeset(document.getElementById("cardA"));
+    },460);
   }
 }
 
