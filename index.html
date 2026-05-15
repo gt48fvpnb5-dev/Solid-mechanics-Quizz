@@ -384,7 +384,7 @@ function startStudy(starsOnly){
 }
 
 function showCard(){
-  flipped=false;mcqDone=false;cbDone=false;
+  flipped=false;mcqDone=false;cbDone=false;flipping=false;
   document.getElementById("nextArrow").textContent="→";
   document.getElementById("nextArrow").innerHTML="&#8594;";
   var c=deck[current];
@@ -426,8 +426,12 @@ function showCard(){
   document.getElementById("nextArrow").disabled=current===deck.length-1;
 }
 
+var flipping=false;
 function handleCardClick(){
+  if(flipping)return;
   if(deck[current]&&deck[current].type==="checkbox")return;
+  flipping=true;
+  setTimeout(function(){flipping=false;},500);
   if(flipped){flipped=false;document.getElementById("cardBody").classList.remove("flipped");document.getElementById("hintText").textContent="Click the card to reveal the answer";}
   else{flipped=true;document.getElementById("cardBody").classList.add("flipped");typeset(document.getElementById("cardA"));document.getElementById("hintText").textContent="Click again to see the question";}
 }
