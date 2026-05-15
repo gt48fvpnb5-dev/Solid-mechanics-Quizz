@@ -60,6 +60,10 @@ header{padding:20px 32px 0;}
 .card-back-face{display:none;align-items:flex-start;}
 .card-body.flipped #frontFace{display:none;}
 .card-body.flipped #backFace{display:flex;}
+.card-body.flipping-out{animation:flipOut .2s ease-in forwards;}
+.card-body.flipping-in{animation:flipIn .2s ease-out forwards;}
+@keyframes flipOut{from{transform:scaleX(1);}to{transform:scaleX(0);}}
+@keyframes flipIn{from{transform:scaleX(0);}to{transform:scaleX(1);}}
 .face-label{position:absolute;top:14px;left:18px;font-size:10px;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
 .star-btn{position:absolute;top:10px;right:14px;background:none;border:none;cursor:pointer;font-size:20px;line-height:1;padding:4px;opacity:.4;transition:opacity .15s,transform .15s;pointer-events:auto;}
 .star-btn:hover{opacity:.85;transform:scale(1.15);}
@@ -111,7 +115,7 @@ mjx-container{font-size:1em !important;}
 </style>
 </head>
 <body>
-<header><div class="logo">Solid Mechanics <span>BME &middot; Bern &middot; 2026</span></div></header>
+<header><div class="logo">Solid Mechanics <span>BME &middot; Bern &middot; 2026</span><span style="margin-left:16px;color:var(--text3);font-size:11px;">v1.3</span></div></header>
 
 <div id="home" class="screen active">
   <h1>Flashcards</h1>
@@ -435,17 +439,26 @@ function handleCardClick(){
   if(flipping)return;
   if(deck[current]&&deck[current].type==="checkbox")return;
   flipping=true;
-  setTimeout(function(){flipping=false;},600);
-  if(flipped){
-    flipped=false;
-    document.getElementById("cardBody").classList.remove("flipped");
-    document.getElementById("hintText").textContent="Click the card to reveal the answer";
-  } else {
-    flipped=true;
-    document.getElementById("cardBody").classList.add("flipped");
-    document.getElementById("hintText").textContent="Click again to see the question";
-
-  }
+  var body=document.getElementById("cardBody");
+  var hint=document.getElementById("hintText");
+  body.classList.add("flipping-out");
+  setTimeout(function(){
+    body.classList.remove("flipping-out");
+    if(flipped){
+      flipped=false;
+      body.classList.remove("flipped");
+      hint.textContent="Click the card to reveal the answer";
+    } else {
+      flipped=true;
+      body.classList.add("flipped");
+      hint.textContent="Click again to see the question";
+    }
+    body.classList.add("flipping-in");
+    setTimeout(function(){
+      body.classList.remove("flipping-in");
+      flipping=false;
+    },200);
+  },200);
 }
 
 function answerMCQ(idx,sc){
