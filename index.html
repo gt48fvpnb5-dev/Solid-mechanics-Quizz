@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solid Mechanics - Flashcards</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<style>
+:root {
+  --bg:#f5f4f0;--surface:#fff;--surface2:#efefea;--border:#ddddd8;
+  --text:#1a1a18;--text2:#6b6b67;--text3:#a0a09c;
+  --accent:#2d5be3;--accent-light:#e8edfc;
+  --star:#e6a817;--star-bg:#fdf5e0;
+  --correct:#1a7a4a;--correct-bg:#e6f5ed;
+  --wrong:#c0392b;--wrong-bg:#fdecea;
+  --radius:14px;--radius-sm:8px;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;}
+header{padding:20px 32px 0;display:flex;align-items:center;}
+.logo{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;}
+.logo span{color:var(--accent);}
+.screen{display:none;} .screen.active{display:block;}
+#home{max-width:680px;margin:0 auto;padding:48px 24px 80px;}
+#home h1{font-size:28px;font-weight:500;margin-bottom:6px;letter-spacing:-.02em;}
+.subtitle{color:var(--text2);font-size:14px;margin-bottom:36px;}
+.section-label{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.quiz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:28px;}
+.quiz-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;cursor:pointer;transition:border-color .15s,background .15s;user-select:none;position:relative;}
+.quiz-card:hover{border-color:#bbb;}
+.quiz-card.selected{border-color:var(--accent);background:var(--accent-light);}
+.quiz-card .qnum{font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:4px;}
+.quiz-card .qtitle{font-size:12px;font-weight:500;color:var(--text);line-height:1.4;}
+.quiz-card .qcount{font-size:11px;color:var(--text2);margin-top:4px;}
+.quiz-card .check{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;background:var(--accent);display:none;align-items:center;justify-content:center;}
+.quiz-card.selected .check{display:flex;}
+.check svg{width:10px;height:10px;fill:white;}
+.action-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:50px;border:none;cursor:pointer;font-family:var(--font);font-size:14px;font-weight:500;transition:opacity .15s,transform .1s;}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--text);color:#fff;} .btn-primary:hover{opacity:.85;}
+.btn-secondary{background:var(--surface);color:var(--text);border:1px solid var(--border);} .btn-secondary:hover{background:var(--surface2);}
+.btn-star{background:var(--star-bg);color:var(--star);border:1px solid #f0d98a;} .btn-star:hover{background:#faeec0;}
+.btn:disabled{opacity:.35;cursor:default;pointer-events:none;}
+.stars-info{background:var(--star-bg);border:1px solid #f0d98a;border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:#7a5a00;display:flex;align-items:center;gap:8px;}
+#study{max-width:660px;margin:0 auto;padding:28px 24px 80px;}
+.study-header{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+.back-btn{background:none;border:1px solid var(--border);border-radius:50px;padding:6px 14px;font-size:13px;cursor:pointer;font-family:var(--font);color:var(--text2);display:flex;align-items:center;gap:5px;}
+.back-btn:hover{background:var(--surface2);}
+.study-title{font-size:14px;font-weight:500;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.star-count-badge{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--star);font-weight:500;flex-shrink:0;}
+.progress-bar-wrap{height:3px;background:var(--border);border-radius:2px;margin-bottom:20px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;}
+.progress-text{text-align:center;font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:16px;}
+.card-wrap{perspective:1000px;margin-bottom:16px;}
+.card-body{position:relative;width:100%;min-height:220px;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.4,0,.2,1);cursor:pointer;}
+.card-body.flipped{transform:rotateY(180deg);}
+.card-face{position:absolute;width:100%;min-height:220px;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);box-shadow:0 2px 16px rgba(0,0,0,.07);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 36px;}
+.card-back-face{transform:rotateY(180deg);background:var(--surface);align-items:flex-start;justify-content:center;}
+.face-label{position:absolute;top:14px;left:18px;font-size:10px;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);}
+.star-btn{position:absolute;top:10px;right:14px;background:none;border:none;cursor:pointer;font-size:20px;line-height:1;padding:4px;opacity:.4;transition:opacity .15s,transform .15s;}
+.star-btn:hover{opacity:.85;transform:scale(1.15);}
+.star-btn.starred{opacity:1;color:var(--star);}
+.card-q{font-size:17px;font-weight:400;text-align:center;color:var(--text);line-height:1.55;}
+.card-a{font-size:14px;color:var(--text);line-height:1.8;width:100%;}
+.mcq-area{margin-bottom:16px;}
+.mcq-opt{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin:7px 0;font-size:14px;color:var(--text);cursor:pointer;font-family:var(--font);transition:border-color .12s,background .12s;}
+.mcq-opt:hover:not(:disabled){background:var(--surface2);border-color:#bbb;}
+.mcq-opt.correct{border-color:var(--correct);background:var(--correct-bg);color:var(--correct);font-weight:500;}
+.mcq-opt.wrong{border-color:var(--wrong);background:var(--wrong-bg);color:var(--wrong);}
+.mcq-opt:disabled{cursor:default;}
+.hint-text{text-align:center;font-size:12px;color:var(--text3);margin-bottom:12px;}
+.shortcuts-hint{text-align:center;font-size:11px;color:var(--text3);margin-top:6px;font-family:var(--mono);}
+.nav-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px;}
+.nav-arrow{width:42px;height:42px;border-radius:50%;background:var(--surface);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:background .12s;color:var(--text);}
+.nav-arrow:hover{background:var(--surface2);}
+.nav-arrow:disabled{opacity:.3;cursor:default;}
+#finish{max-width:500px;margin:0 auto;padding:80px 24px;text-align:center;}
+#finish h2{font-size:26px;font-weight:500;margin-bottom:10px;}
+#finish p{color:var(--text2);margin-bottom:32px;}
+.finish-btns{display:flex;flex-direction:column;gap:10px;align-items:center;}
+@media(max-width:500px){#home,#study{padding-left:16px;padding-right:16px;}.card-face{padding:28px 20px;}.card-q{font-size:15px;}}
+mjx-container{font-size:1em !important;}
+</style>
+</head>
+<body>
+<header><div class="logo">Solid Mechanics <span>BME &middot; Bern &middot; 2026</span></div></header>
+
+<div id="home" class="screen active">
+  <h1>Flashcards</h1>
+  <p class="subtitle">Select the quizzes you want to study</p>
+  <p class="section-label">Available quizzes</p>
+  <div class="quiz-grid" id="quizGrid"></div>
+  <div class="action-row">
+    <button class="btn btn-secondary" onclick="selectAll()">Select all</button>
+    <button class="btn btn-secondary" onclick="deselectAll()">Deselect all</button>
+  </div>
+  <div class="action-row">
+    <button class="btn btn-primary" id="startBtn" onclick="startStudy(false)">&#9654; Study selected</button>
+    <button class="btn btn-star" id="starOnlyBtn" onclick="startStudy(true)">&#9733; Starred only</button>
+  </div>
+  <div id="starsInfo" class="stars-info" style="display:none"><span>&#9733;</span><span id="starsInfoText"></span></div>
+</div>
+
+<div id="study" class="screen">
+  <div class="study-header">
+    <button class="back-btn" onclick="goHome()">&#8592; Back</button>
+    <span class="study-title" id="studyTitle"></span>
+    <span class="star-count-badge" id="starCountBadge" style="display:none">&#9733; <span id="starCountNum">0</span></span>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="progress-text" id="progressLabel"></div>
+  <div class="card-wrap">
+    <div class="card-body" id="cardBody" onclick="handleCardClick()">
+      <div class="card-face" id="frontFace">
+        <span class="face-label">Question</span>
+        <button class="star-btn" id="starBtn2" onclick="event.stopPropagation();toggleStar()" title="Star (S)" style="pointer-events:auto">&#9733;</button>
+        <div class="card-q" id="cardQ"></div>
+      </div>
+      <div class="card-face card-back-face" id="backFace">
+        <span class="face-label">Answer</span>
+        <div class="card-a" id="cardA"></div>
+      </div>
+    </div>
+  </div>
+  <div class="mcq-area" id="mcqArea" style="display:none"></div>
+  <div class="hint-text" id="hintText"></div>
+  <div class="nav-row">
+    <button class="nav-arrow" id="prevArrow" onclick="navigate(-1)">&#8592;</button>
+    <button class="nav-arrow" id="nextArrow" onclick="navigate(1)">&#8594;</button>
+  </div>
+  <div class="shortcuts-hint">&#8592;&#8594; navigate &nbsp;&bull;&nbsp; space: flip &nbsp;&bull;&nbsp; S: star</div>
+</div>
+
+<div id="finish" class="screen">
+  <h2 id="finishTitle">Session complete!</h2>
+  <p id="finishSub"></p>
+  <div class="finish-btns">
+    <button class="btn btn-primary" onclick="restartSame()">&#8635; Restart same set</button>
+    <button class="btn btn-star" id="reviewStarsBtn" onclick="startStudy(true)" style="display:none">&#9733; Review starred cards</button>
+    <button class="btn btn-secondary" onclick="goHome()">&#8592; Back to menu</button>
+  </div>
+</div>
+
+<script>
+// Prof notation (lecture00, slide 43):
+// scalar: alpha  |  vector (order 1): \underline{v}
+// tensor order 2: \underline{\underline{T}}
+// tensor order 3: \underline{\underline{\epsilon}}
+// tensor order 4: \mathbb{K} (outlined, triple underline)
+
+var QUIZZES = [
+  {id:0, title:"Introductory lecture", cards:[
+    {q:"Which musculoskeletal tissue undergoes the lowest strains?",
+     a:"<b>Bone</b>: [&minus;0.15%, +0.1%]<br><br>&bull; Cartilage: [&minus;40%, +10%]<br>&bull; Muscle: [&minus;50%, +50%]",type:"open"},
+    {q:"What is the problem of linear elasticity in 1D?",
+     a:"Find \\(u(x,t)\\) such that: $$\\rho\\ddot{u} - \\kappa - \\frac{d\\sigma}{dx} = 0$$with \\(\\sigma = E\\varepsilon\\) and \\(\\varepsilon = \\dfrac{du}{dx}\\)",type:"open"},
+    {q:"Provide 4 keywords from the definition of mechanics.",
+     a:"<b>motion</b> &middot; <b>forces</b> &middot; <b>energy</b> &middot; <b>laws</b>",type:"open"},
+    {q:"What is the opposite of <i>continuous</i>?",a:"<b>Discrete</b>",type:"open"},
+    {q:"Cite 3 variables of mechanics.",
+     a:"Any 3 of: time &middot; positions/displacements &middot; forces/moments &middot; energy/power &middot; strains &middot; stresses &middot; internal variables (e.g. \\(\\varepsilon^p\\) or \\(D\\))",type:"open"},
+    {q:"How many non-collinear points define a reference frame in 3D?",
+     a:"<b>4 points</b> &mdash; rule: \\(N \\geq D+1\\), so \\(D=3 \\Rightarrow N \\geq 4\\)",
+     type:"mcq",options:["2","3","4"],correct:2},
+    {q:"What defines an orthogonal matrix?",
+     a:"\\(Q_{ik}Q_{jk} = \\delta_{ij}\\), i.e. \\(\\underline{\\underline{Q}}\\,\\underline{\\underline{Q}}^T = \\underline{\\underline{I}}\\)",
+     type:"mcq",options:["\\(Q_{ij}=Q_{ji}\\)","\\(\\exists w_k,\\ Q_{ij}=\\varepsilon_{ijk}w_k\\)","\\(Q_{ik}Q_{jk}=\\delta_{ij}\\)"],correct:2},
+    {q:"What is the order of a tensor?",
+     a:"The <b>number of indices</b> needed to order its components<br><br>\\(\\alpha\\)&rarr;0 &middot; \\(\\underline{v}\\)&rarr;1 &middot; \\(\\underline{\\underline{T}}\\)&rarr;2",
+     type:"mcq",options:["The physical units of the components","The dimension of the vector space","The number of indices to order its components"],correct:2},
+    {q:"For \\(y: t \\to y(t)\\), what are the orders of the argument and the function?",
+     a:"Both scalars &rarr; order <b>0</b> &mdash; mapping \\(\\mathbb{R}\\to\\mathbb{R}\\)",type:"open"},
+    {q:"What are the three types of tensor notations?",
+     a:"1. <b>Intrinsic</b>: \\(\\alpha,\\ \\underline{v},\\ \\underline{\\underline{T}},\\ \\underline{\\underline{\\epsilon}},\\ \\mathbb{K}\\)<br>2. <b>Index</b>: \\(v_i,\\ T_{ij},\\ \\epsilon_{ijk},\\ K_{ijkl}\\)<br>3. <b>Explicit</b>: full matrix/column display",type:"open"}
+  ]},
+  {id:1, title:"Tensor Algebra", cards:[
+    {q:"Give the index notation of (1) \\(\\underline{\\underline{\\epsilon}}\\,\\underline{\\underline{A}}\\), (2) \\(\\underline{\\underline{A}}:\\underline{\\underline{B}}\\), (3) \\(\\underline{\\underline{A}}\\underline{x}\\)",
+     a:"(1) \\(\\varepsilon_{ijk}A_{jl}\\): 3rd order tensor, indices \\(i,k,l\\) free<br>(2) \\(A_{ij}B_{ij}\\): scalar, \\(i,j\\) mute<br>(3) \\(A_{ij}x_j\\): vector, \\(i\\) free, \\(j\\) mute",type:"open"},
+    {q:"Give the intrinsic notation of \\(\\varepsilon_{ijk}a_kb_j\\), \\(A_{jl}B_{ik}\\), \\(p\\,a_i^2\\)",
+     a:"\\(\\varepsilon_{ijk}a_kb_j = -(\\underline{a}\\times\\underline{b})_i = (\\underline{b}\\times\\underline{a})_i\\) &rarr; \\(\\underline{b}\\times\\underline{a}\\)<br>\\(A_{jl}B_{ik}\\) &rarr; product of components (no simple intrinsic form)<br>\\(p\\,a_i^2\\) &rarr; \\(p\\,\\|\\underline{a}\\|^2\\)",type:"open"},
+    {q:"Give the explicit notation of \\(a_ib_i\\), \\(A_{ij}x_j\\), \\(\\underline{a}\\otimes\\underline{b}\\)",
+     a:"\\(a_ib_i = \\sum_i a_ib_i\\) (scalar product)<br>\\(A_{ij}x_j\\): matrix-vector product<br>\\(\\underline{a}\\otimes\\underline{b}\\): \\(3\\times3\\) matrix with \\((\\underline{a}\\otimes\\underline{b})_{ij}=a_ib_j\\)",type:"open"},
+    {q:"Is the index \\(i\\) free or mute in each case?",
+     a:"\\(A_{ij}+B_{ij}=C_{ij}\\) &rarr; \\(i\\) <b>free</b> (appears on both sides once)<br>\\(w_k=\\varepsilon_{kji}a_jb_i\\) &rarr; \\(i\\) <b>mute</b> (repeated, summed)<br>\\(A_{ij}B_{ij}=0\\) &rarr; \\(i\\) <b>mute</b> (repeated, summed)",
+     type:"open"},
+    {q:"Which operators on \\(\\underline{\\underline{X}}\\) are linear?",
+     a:"\\(\\underline{\\underline{A}}\\underline{\\underline{X}}\\): <b>linear</b><br>\\(\\det\\underline{\\underline{X}}\\): <b>not linear</b> (degree 3 in 3D)<br>\\(\\underline{\\underline{A}}:\\underline{\\underline{X}}\\): <b>linear</b>",type:"open"},
+    {q:"Which assertions about \\(\\underline{\\underline{\\epsilon}}\\) are true?",
+     a:"&bull; The Levi-Civita tensor is of order 3: <b>TRUE</b><br>&bull; \\(\\varepsilon_{132}=0\\): <b>FALSE</b> (\\(\\varepsilon_{132}=-1\\), odd permutation)<br>&bull; \\((\\underline{a}\\times\\underline{b})\\cdot\\underline{c} = \\underline{c}\\cdot\\underline{\\underline{\\epsilon}}(\\underline{a}\\otimes\\underline{b})\\): <b>TRUE</b>",type:"open"},
+    {q:"Check if the indices are compatible.",
+     a:"\\(a_i+b_j=c_k\\): <b>incompatible</b> (different free indices)<br>\\(a_ib_j=C_{ij}\\): <b>compatible</b><br>\\(A_{ijkl}B_{mnkl}=C_{ijmn}\\): <b>compatible</b> (\\(k,l\\) mute; \\(i,j,m,n\\) free)",type:"open"},
+    {q:"What is the degree of mathematical homogeneity of \\(\\text{tr}(\\lambda\\underline{\\underline{F}})\\), \\(\\text{sec}(\\lambda\\underline{\\underline{F}})\\), \\(\\det(\\lambda\\underline{\\underline{F}})\\)?",
+     a:"\\(\\text{tr}(\\lambda\\underline{\\underline{F}}) = \\lambda\\,\\text{tr}(\\underline{\\underline{F}})\\) &rarr; degree <b>1</b><br>\\(\\text{sec}(\\lambda\\underline{\\underline{F}})\\) &rarr; degree <b>2</b><br>\\(\\det(\\lambda\\underline{\\underline{F}}) = \\lambda^3\\det(\\underline{\\underline{F}})\\) &rarr; degree <b>3</b>",type:"open"},
+    {q:"Identity elements of which spaces/operators are \\(1,\\ \\underline{\\underline{I}},\\ \\underline{\\underline{I}}\\otimes\\underline{\\underline{I}},\\ \\underline{\\underline{I}}\\overline{\\otimes}\\underline{\\underline{I}}\\)?",
+     a:"\\(1\\): identity of \\(\\mathbb{R}\\) (multiplication)<br>\\(\\underline{\\underline{I}}\\): identity of \\(\\mathbb{R}^3\\otimes\\mathbb{R}^3\\) (composition of 2nd order tensors)<br>\\(\\underline{\\underline{I}}\\otimes\\underline{\\underline{I}}\\): dyadic identity of 4th order tensors<br>\\(\\underline{\\underline{I}}\\overline{\\otimes}\\underline{\\underline{I}}\\): symmetric identity (\\(\\mathbb{I}_{ijkl}=\\delta_{ik}\\delta_{jl}\\))",type:"open"},
+    {q:"Which isomorphism from \\(\\mathbb{R}^3\\times\\mathbb{R}^3\\) to \\(\\mathbb{R}^6\\) preserves the internal scalar product?",
+     a:"<b>B. Mandel</b><br><br>Mandel uses factors of \\(\\sqrt{2}\\) on off-diagonal components, preserving \\(\\underline{\\underline{A}}:\\underline{\\underline{B}} = \\tilde{a}\\cdot\\tilde{b}\\).",
+     type:"mcq",options:["A. Plain","B. Mandel","C. Voigt"],correct:1}
+  ]},
+  {id:2, title:"Tensor Analysis", cards:[
+    {q:"What is the time derivative \\(\\dot{(\\underline{a}\\times\\underline{b})}\\)?",
+     a:"\\(\\dot{\\underline{a}}\\times\\underline{b} + \\underline{a}\\times\\dot{\\underline{b}}\\)",
+     type:"mcq",options:["\\(\\underline{a}\\times\\dot{\\underline{b}}\\)","\\(\\dot{\\underline{a}}\\times\\dot{\\underline{b}}\\)","\\(\\dot{\\underline{a}}\\times\\underline{b}+\\underline{a}\\times\\dot{\\underline{b}}\\)"],correct:2},
+    {q:"What is the time derivative of \\(\\nabla_x\\underline{y}\\)?",
+     a:"\\(\\nabla_x\\dot{\\underline{y}}\\) &mdash; differentiation w.r.t. \\(x\\) and time are independent",
+     type:"mcq",options:["\\(\\nabla_{\\dot{x}}\\underline{y}\\)","\\(\\nabla_x\\dot{\\underline{y}}\\)","\\(\\nabla_{\\dot{x}}\\dot{\\underline{y}}\\)"],correct:1},
+    {q:"What is the time derivative of \\(\\underline{\\underline{A}}\\underline{\\underline{B}}\\)?",
+     a:"\\(\\dot{\\underline{\\underline{A}}}\\underline{\\underline{B}} + \\underline{\\underline{A}}\\dot{\\underline{\\underline{B}}}\\) (product rule)",
+     type:"mcq",options:["\\(\\dot{\\underline{\\underline{A}}}\\dot{\\underline{\\underline{B}}}\\)","\\(\\dot{\\underline{\\underline{A}}}\\underline{\\underline{B}}+\\underline{\\underline{A}}\\dot{\\underline{\\underline{B}}}\\)","\\(\\dot{\\underline{\\underline{A}}}\\underline{\\underline{B}}-\\underline{\\underline{A}}\\dot{\\underline{\\underline{B}}}\\)"],correct:1},
+    {q:"What is the spatial derivative of \\(f(\\underline{x})=\\|\\underline{x}\\|\\)?",
+     a:"\\(\\nabla_x\\|\\underline{x}\\| = \\dfrac{\\underline{x}}{\\|\\underline{x}\\|}\\)",
+     type:"mcq",options:["\\(\\underline{\\underline{I}}\\)","\\(\\underline{x}\\)","\\(\\dfrac{\\underline{x}}{\\|\\underline{x}\\|}\\)"],correct:2},
+    {q:"What is the spatial derivative of \\(f(\\underline{x})=\\underline{\\underline{A}}\\underline{x}+\\underline{a}\\)?",
+     a:"\\(\\nabla_x f = \\underline{\\underline{A}}\\) (the constant gradient)",
+     type:"mcq",options:["\\(\\underline{\\underline{A}}\\)","\\(\\underline{\\underline{I}}\\)","\\(\\underline{a}\\otimes\\underline{a}\\)"],correct:0},
+    {q:"What is the spatial derivative of \\(f(\\underline{y})=\\|\\underline{y}\\|\\) with \\(\\underline{y}=\\underline{\\underline{R}}(t)\\underline{x}+\\underline{b}(t)\\)?",
+     a:"\\(\\underline{\\underline{R}}^T(t)\\dfrac{\\underline{y}}{\\|\\underline{y}\\|}\\)",
+     type:"mcq",options:["\\(\\underline{\\underline{R}}^T(t)\\dfrac{\\underline{y}}{\\|\\underline{y}\\|}\\)","\\(\\underline{\\underline{R}}(t)\\dfrac{\\underline{y}}{\\|\\underline{y}\\|}\\)","\\(\\dfrac{\\underline{x}+\\underline{\\underline{R}}(t)\\underline{b}(t)}{\\|(\\underline{\\underline{R}}\\underline{x}+\\underline{b})\\|}\\)"],correct:0},
+    {q:"Which assertions about the Gateaux differential are true?",
+     a:"&bull; Homogeneous of degree 1 \\(\\delta g(x,\\lambda w)=\\lambda\\delta g(x,w)\\): <b>TRUE</b><br>&bull; Always linear: <b>FALSE</b> (linear only if Frechet derivative exists)<br>&bull; The Frechet derivative exists when the Gateaux differential is linear: <b>TRUE</b>",type:"open"},
+    {q:"Which assertions about differential operators are true?",
+     a:"&bull; \\(\\int_{\\partial\\omega}\\underline{\\underline{P}}\\underline{n}\\,dA = \\int_\\omega \\nabla\\cdot\\underline{\\underline{P}}\\,dV\\): <b>TRUE</b> (divergence theorem)<br>&bull; \\(\\nabla_x(f/g) = \\frac{1}{g^2}(\\nabla_x f\\cdot g + f\\nabla_x g)\\): <b>FALSE</b> (sign error)<br>&bull; \\(\\nabla_x f(g(x)) = \\frac{df}{dg}\\cdot\\nabla_x g\\): <b>TRUE</b> (chain rule)",type:"open"}
+  ]},
+  {id:3, title:"Geometry and Motion", cards:[
+    {q:"What is the moving (actual) configuration?",
+     a:"The <b>actual</b> configuration \\(\\Omega_t\\) at time \\(t > t_0\\)",
+     type:"mcq",options:["Original","Actual","Rotated"],correct:1},
+    {q:"Appropriate size of a continuous body relative to its microstructure?",
+     a:"At least <b>10x larger</b> than the microstructure",
+     type:"mcq",options:["&gt;10x larger than microstructure","&lt;10x smaller than microstructure","= size of microstructure"],correct:0},
+    {q:"What kind of mapping is a motion \\(\\underline{y}\\)?",
+     a:"\\(\\mathbb{R}^3\\times\\mathbb{R}\\to\\mathbb{R}^3\\) &mdash; original position \\(\\underline{x}\\) and time \\(t\\) give actual position \\(\\underline{y}(\\underline{x},t)\\)",
+     type:"mcq",options:["\\(\\mathbb{R}^3\\to\\mathbb{R}\\times\\mathbb{R}^3\\)","\\(\\mathbb{R}^3\\to\\mathbb{R}\\)","\\(\\mathbb{R}^3\\times\\mathbb{R}\\to\\mathbb{R}^3\\)"],correct:2},
+    {q:"What is invariant under a rigid body motion?",
+     a:"&bull; Lengths: <b>YES</b> &mdash; \\(\\|\\underline{y}-\\underline{y}_e\\|=\\|\\underline{x}-\\underline{x}_e\\|\\)<br>&bull; Angles: <b>YES</b><br>&bull; Center of rotation: <b>NO</b> (not generally preserved)",type:"open"},
+    {q:"Which description has a reference configuration?",
+     a:"<b>Lagrangian</b> (particles tracked from original config \\(\\Omega\\))<br><b>Updated Lagrangian</b> (reference = last known config)<br>Eulerian: no fixed reference configuration",type:"open"},
+    {q:"What is displacement \\(\\underline{u}\\)?",
+     a:"\\(\\underline{u}(\\underline{x},t) = \\underline{y}(\\underline{x},t) - \\underline{x}\\)",
+     type:"mcq",options:["\\(\\underline{y}-\\underline{x}\\)","\\(\\underline{y}+\\underline{x}\\)","\\(\\underline{x}-\\underline{y}\\)"],correct:0},
+    {q:"What are the key properties of \\(\\underline{\\underline{F}}\\)?",
+     a:"\\(\\underline{\\underline{F}}(\\underline{x},t) = \\nabla_x\\underline{y}(\\underline{x},t)\\)<br>&bull; \\(\\det\\underline{\\underline{F}} > 0\\) (bijective, no self-penetration)<br>&bull; Maps infinitesimal material elements<br>&bull; Generally <b>not symmetric</b>",type:"open"},
+    {q:"How do infinitesimal area, surface normal and volume transform with \\(\\underline{\\underline{F}}\\)?",
+     a:"Area element: \\(d\\underline{a}_t = \\det(\\underline{\\underline{F}})\\,\\underline{\\underline{F}}^{-T}d\\underline{a}\\) (Nanson)<br>Surface normal: \\(\\underline{n}_t\\,dA_t = \\det(\\underline{\\underline{F}})\\,\\underline{\\underline{F}}^{-T}\\underline{n}\\,dA\\)<br>Volume: \\(dV_t = \\det(\\underline{\\underline{F}})\\,dV = J\\,dV\\)",type:"open"},
+    {q:"Which expression is a polar decomposition?",
+     a:"\\(\\underline{\\underline{F}} = \\underline{\\underline{R}}\\underline{\\underline{U}}\\) (right) or \\(\\underline{\\underline{F}} = \\underline{\\underline{V}}\\underline{\\underline{R}}\\) (left)<br>Both are valid polar decompositions.",type:"open"},
+    {q:"What is the spectral decomposition of \\(\\underline{\\underline{U}}\\)?",
+     a:"$$\\underline{\\underline{U}} = \\sum_a \\upsilon_a\\, {}^a\\underline{c}\\otimes {}^a\\underline{c}$$where \\(\\upsilon_a\\) are the principal stretches and \\({}^a\\underline{c}\\) the eigenvectors.",type:"open"}
+  ]},
+  {id:4, title:"Strains", cards:[
+    {q:"What is the infinitesimal strain tensor \\(\\underline{\\underline{\\varepsilon}}\\)?",
+     a:"\\(\\underline{\\underline{\\varepsilon}} = \\dfrac{1}{2}(\\underline{\\underline{H}}+\\underline{\\underline{H}}^T)\\) &mdash; symmetric part of the displacement gradient",
+     type:"mcq",options:["\\(\\frac{1}{2}(\\underline{\\underline{H}}-\\underline{\\underline{H}}^T)\\)","\\(\\frac{1}{2}(\\underline{\\underline{H}}+\\underline{\\underline{H}}^T)\\)","\\(\\underline{\\underline{H}}+\\underline{\\underline{H}}^T\\)"],correct:1},
+    {q:"What is the infinitesimal relative change of volume?",
+     a:"\\(\\dfrac{\\Delta V}{V} \\approx \\text{tr}(\\underline{\\underline{\\varepsilon}}) = \\varepsilon_{11}+\\varepsilon_{22}+\\varepsilon_{33}\\)",
+     type:"mcq",options:["\\(\\text{Tr}(\\underline{\\underline{\\varepsilon}})\\)","\\(\\text{Sec}(\\underline{\\underline{\\varepsilon}})\\)","\\(\\text{Det}(\\underline{\\underline{\\varepsilon}})\\)"],correct:0},
+    {q:"What is an infinitesimal rotation?",
+     a:"\\(\\|\\frac{1}{2}(\\underline{\\underline{H}}-\\underline{\\underline{H}}^T)\\|\\ll 1\\), i.e. \\(\\theta_i\\ll\\pi\\)<br>(antisymmetric part of \\(\\underline{\\underline{H}}\\) is small)",
+     type:"mcq",options:["\\(\\underline{\\underline{R}}\\cong\\underline{\\underline{I}}\\)","\\(\\|\\frac{1}{2}(\\underline{\\underline{H}}-\\underline{\\underline{H}}^T)\\|\\ll 1\\)","\\(\\underline{\\underline{R}}\\cong\\underline{\\underline{0}}\\)"],correct:1},
+    {q:"What is an infinitesimal strain?",
+     a:"\\(\\underline{\\underline{\\varepsilon}}\\cong\\underline{\\underline{0}}\\) &mdash; the symmetric strain tensor is small",
+     type:"mcq",options:["\\(\\underline{\\underline{\\varepsilon}}\\cong\\underline{\\underline{I}}\\)","\\(\\underline{\\underline{\\varepsilon}}\\cong\\underline{\\underline{0}}\\)","\\(\\underline{\\underline{\\varepsilon}}\\cong\\underline{\\underline{R}}\\)"],correct:1},
+    {q:"What is an infinitesimal motion?",
+     a:"\\(\\underline{\\underline{F}}\\cong\\underline{\\underline{I}}\\) &mdash; small rotation AND small strain",
+     type:"mcq",options:["\\(\\underline{\\underline{F}}\\cong\\underline{\\underline{R}}+\\underline{\\underline{\\varepsilon}}\\)","\\(\\underline{\\underline{F}}\\cong\\underline{\\underline{I}}\\)","\\(\\underline{\\underline{F}}\\cong\\underline{\\underline{0}}\\)"],correct:1},
+    {q:"What is an infinitesimal motion in words?",
+     a:"<b>Small rotation AND small strain</b>",
+     type:"mcq",options:["Small rotation only","Small strain only","Small rotation &amp; small strain"],correct:2},
+    {q:"What is a homogeneous \\(\\underline{\\underline{F}}\\)?",
+     a:"\\(\\underline{\\underline{F}}(\\underline{x},t) = \\underline{\\underline{F}}(t)\\) &mdash; independent of position \\(\\underline{x}\\)",
+     type:"mcq",options:["\\(\\dot{\\underline{\\underline{F}}}=\\underline{\\underline{0}}\\)","\\(\\underline{\\underline{F}}(\\underline{x},t)=\\underline{\\underline{F}}(t)\\)","\\(\\underline{\\underline{F}}(\\underline{x},t)=\\underline{\\underline{F}}(\\underline{x})\\)"],correct:1},
+    {q:"Name these deformations: \\(\\lambda\\underline{\\underline{I}}\\,(\\lambda>1)\\) &bull; \\((\\upsilon_3-1)({}^3\\underline{e}\\otimes{}^3\\underline{e})+\\underline{\\underline{I}}\\,(\\upsilon_3<1)\\) &bull; \\(\\upsilon_a({}^a\\underline{c}\\otimes{}^a\\underline{c})\\) &bull; \\(\\tan(\\gamma)({}^1\\underline{e}\\otimes{}^2\\underline{e})+\\underline{\\underline{I}}\\)",
+     a:"1. <b>Isotropic dilation</b> (\\(\\lambda>1\\))<br>2. <b>Uniaxial contraction</b> along \\({}^3\\underline{e}\\)<br>3. <b>Uniaxial stretch</b> along \\({}^a\\underline{c}\\)<br>4. <b>Simple shear</b> in 1-2 plane",type:"open"},
+    {q:"What is the Green-Lagrange strain \\(\\underline{\\underline{E}}\\)?",
+     a:"\\(\\underline{\\underline{E}} = \\dfrac{1}{2}(\\underline{\\underline{F}}^T\\underline{\\underline{F}} - \\underline{\\underline{I}})\\)",
+     type:"mcq",options:["\\(\\frac{1}{2}(\\underline{\\underline{H}}+\\underline{\\underline{H}}^T)\\)","\\(\\frac{1}{2}(\\underline{\\underline{F}}^T\\underline{\\underline{F}}-\\underline{\\underline{I}})\\)","\\(\\frac{1}{2}(\\underline{\\underline{U}}^2+\\underline{\\underline{I}})\\)"],correct:1},
+    {q:"What is the logarithmic strain?",
+     a:"$$\\underline{\\underline{E}}_{\\log} = \\sum_a \\ln(\\upsilon_a)\\,{}^a\\underline{c}\\otimes{}^a\\underline{c} = \\ln(\\underline{\\underline{U}})$$",
+     type:"mcq",options:["\\(\\sum_a\\exp(\\upsilon_a)\\,{}^a\\underline{c}\\otimes{}^a\\underline{c}\\)","\\(\\sum_a\\ln(\\upsilon_a)\\,{}^a\\underline{c}\\otimes{}^a\\underline{c}\\)","\\(\\sum_a\\upsilon_a^{-1}\\,{}^a\\underline{c}\\otimes{}^a\\underline{c}\\)"],correct:1}
+  ]},
+  {id:5, title:"Strain Rates and More", cards:[
+    {q:"Which strain rate belongs to a material description?",
+     a:"Only \\(\\dot{\\underline{\\underline{C}}} = \\dot{\\underline{\\underline{F}}}^T\\underline{\\underline{F}}+\\underline{\\underline{F}}^T\\dot{\\underline{\\underline{F}}}\\) is material (rate of right Cauchy-Green)<br><br>&bull; \\(\\dot{\\underline{\\underline{F}}}\\): rate of \\(\\underline{\\underline{F}}\\), not a strain rate<br>&bull; \\(\\underline{\\underline{F}}^{-T}\\dot{\\underline{\\underline{E}}}\\underline{\\underline{F}}^{-1} = \\underline{\\underline{D}}\\): equals the <b>Eulerian</b> (spatial) deformation rate &mdash; NOT material",type:"open"},
+    {q:"What is the Eulerian deformation rate \\(\\underline{\\underline{D}}\\)?",
+     a:"\\(\\underline{\\underline{D}}(\\underline{y},t) = \\dfrac{1}{2}(\\nabla_y\\underline{v}^t + \\nabla_y^T\\underline{v}^t)\\) &mdash; symmetric part of velocity gradient",
+     type:"mcq",options:["\\(\\frac{1}{2}(\\nabla_x\\underline{v}-\\nabla^T_x\\underline{v})\\)","\\(\\frac{1}{2}(\\nabla_y\\underline{v}+\\nabla^T_y\\underline{v})\\)","\\(\\frac{1}{2}\\dot{\\underline{\\underline{C}}}\\)"],correct:1},
+    {q:"What is the Eulerian rotation rate \\(\\underline{\\underline{W}}\\)?",
+     a:"\\(\\underline{\\underline{W}}(\\underline{y},t) = \\dfrac{1}{2}(\\nabla_y\\underline{v}^t - \\nabla_y^T\\underline{v}^t)\\) &mdash; antisymmetric part of velocity gradient",
+     type:"mcq",options:["\\(\\frac{1}{2}\\dot{\\underline{\\underline{B}}}\\)","\\(\\frac{1}{2}(\\nabla_x\\underline{v}+\\nabla^T_x\\underline{v})\\)","\\(\\frac{1}{2}(\\nabla_y\\underline{v}-\\nabla^T_y\\underline{v})\\)"],correct:2},
+    {q:"What is a proportional motion?",
+     a:"\\(\\underline{u}(\\lambda t) = \\lambda\\,\\underline{u}(t)\\) &mdash; homogeneous of degree 1 in time",
+     type:"mcq",options:["\\(\\underline{u}(\\lambda+t)=\\lambda+\\underline{u}(t)\\)","\\(\\underline{u}(\\lambda t)=\\lambda\\,\\underline{u}(t)\\)","\\(\\underline{u}(\\lambda t)=\\lambda^2\\underline{u}(t)\\)"],correct:1},
+    {q:"True or false about strain rates.",
+     a:"&bull; \\(\\underline{\\underline{W}}=\\underline{\\underline{0}}\\) iff no rotation: <b>FALSE</b> (W=0 requires both no rigid rotation AND no shear-induced spin)<br>&bull; \\(\\dot{\\underline{\\underline{U}}}\\) easy to calculate: <b>FALSE</b> (complicated expression)<br>&bull; All nominal strain measures are symmetric: <b>FALSE</b> (e.g. \\(\\underline{\\underline{H}}\\) is not symmetric)",type:"open"},
+    {q:"A general change of reference frame is defined by:",
+     a:"\\(\\tilde{\\underline{y}}(\\tilde{\\underline{x}},\\tilde{t}) = \\underline{\\underline{R}}^T(t)(\\underline{y}(\\underline{x},t)-\\underline{r}(t))\\)<br>(rotation + translation, both time-dependent)",
+     type:"mcq",options:["\\(\\tilde{\\underline{y}}=\\underline{\\underline{R}}^T(t)(\\underline{y}-\\underline{r}(t))\\)","\\(\\tilde{\\underline{y}}=\\underline{\\underline{Q}}^T(\\underline{y}-\\underline{q})\\)","\\(\\tilde{\\underline{y}}=\\underline{y}-\\underline{v}t-\\underline{r}\\)"],correct:0},
+    {q:"A change of coordinate system is:",
+     a:"<b>Time-independent</b> &mdash; it is a fixed rotation \\(\\underline{\\underline{Q}}\\), unlike a change of reference frame which is time-dependent.",
+     type:"mcq",options:["Time-dependent","Time-independent"],correct:1},
+    {q:"New components in a changed coordinate system are given by:",
+     a:"\\(\\tilde{x}_i = Q_{ji}(x_j - q_j)\\) &mdash; \\(\\underline{\\underline{Q}}^T\\) applied to \\((\\underline{x}-\\underline{q})\\)",
+     type:"mcq",options:["\\(\\tilde{x}_i=Q_{ij}(x_j-q_j)\\)","\\(\\tilde{x}_j=Q_{ji}(x_i-q_i)\\)","\\(\\tilde{x}_i=Q_{ji}(x_j-q_j)\\)"],correct:2},
+    {q:"An objective constitutive law is:",
+     a:"<b>Independent of a general change of reference frame</b> (time-dependent rigid body motion)",
+     type:"mcq",options:["Time-independent","Independent of a change of coordinate system","Independent of a general change of reference frame"],correct:2},
+    {q:"Which variables are objective?",
+     a:"&bull; \\(\\rho(\\underline{x},t)\\): <b>YES</b> (scalar, unchanged)<br>&bull; \\(\\underline{\\underline{B}}(\\underline{y},t)\\): <b>YES</b> (transforms as a tensor)<br>&bull; \\(\\dot{\\underline{y}}(\\underline{x},t)\\): <b>NO</b> (velocity depends on reference frame)<br>&bull; \\(\\dot{\\underline{\\underline{F}}}(\\underline{x},t)\\): <b>NO</b> (not objective)",type:"open"}
+  ]},
+  {id:6, title:"Mass, Density and Momentum", cards:[
+    {q:"What are mathematical properties of mass?",
+     a:"&bull; Tensor of rank 0 (scalar): <b>YES</b><br>&bull; Positive: <b>YES</b><br>&bull; Extensive (additive): <b>YES</b>",type:"open"},
+    {q:"Does mass depend on the configuration?",
+     a:"<b>Never</b> &mdash; mass is conserved: \\(M_t(\\Omega_t,t)=M(\\Omega)\\)",
+     type:"mcq",options:["Always","Never","Sometimes"],correct:1},
+    {q:"Does density depend on the configuration?",
+     a:"<b>Always</b> &mdash; \\(\\rho_t(\\underline{x},t) = \\rho(\\underline{x})J^{-1}(\\underline{x},t)\\) changes with volume",
+     type:"mcq",options:["Always","Never","Sometimes"],correct:0},
+    {q:"Is the linear momentum additive?",
+     a:"<b>Always</b> &mdash; \\(\\underline{l}(\\cup_i\\Omega_i,t)=\\sum_i\\underline{l}(\\Omega_i,t)\\)",
+     type:"mcq",options:["Always","Never","Sometimes"],correct:0},
+    {q:"When is the linear momentum equivalent to that of the centre of mass?",
+     a:"When <b>mass is conserved</b>: \\(\\underline{l}(\\Omega,t)=M\\dot{\\underline{c}}_y\\)",
+     type:"mcq",options:["Mass is very large","Mass is conserved","Homogeneous deformation"],correct:1},
+    {q:"What does the Huygens-Steiner theorem relate?",
+     a:"The <b>tensor of inertia with respect to different reference points</b>:<br>\\(\\underline{\\underline{J}}_O = \\underline{\\underline{J}}_G + M\\,\\underline{\\underline{J}}_{OG}\\)",
+     type:"mcq",options:["Center of mass in different configs","Tensor of inertia w.r.t. different reference points","Linear momentum w.r.t. different reference points"],correct:1},
+    {q:"How is the moment of inertia around \\(\\underline{n}\\) calculated?",
+     a:"\\(J_n = \\underline{n}\\cdot\\underline{\\underline{J}}\\underline{n}\\)",
+     type:"mcq",options:["\\(\\underline{n}\\cdot\\underline{\\underline{J}}\\underline{n}\\)","\\(\\dfrac{1}{\\sqrt{\\underline{n}\\cdot\\underline{\\underline{J}}\\underline{n}}}\\)","\\(\\sqrt{\\dfrac{\\underline{n}\\cdot\\underline{\\underline{J}}\\underline{n}}{M}}\\)"],correct:0},
+    {q:"Under which condition is the tensor of inertia additive?",
+     a:"Same <b>reference point</b> for all sub-parts",
+     type:"mcq",options:["Mass is conserved","No rotations","Same reference point"],correct:2},
+    {q:"Is the angular momentum additive?",
+     a:"<b>Always</b> &mdash; additive by construction, like linear momentum",type:"open"},
+    {q:"What does the first theorem of Konig claim?",
+     a:"The angular momentum can be <b>separated into 2 parts</b>: spin around centre of mass + orbital momentum of centre of mass",
+     type:"mcq",options:["Angular momentum is constant","Angular momentum separates into 2 parts","Angular momentum depends on two reference points"],correct:1}
+  ]},
+  {id:7, title:"Forces and Moments", cards:[
+    {q:"What are the units of forces?",
+     a:"\\(\\text{N} = \\dfrac{\\text{kg}\\cdot\\text{m}}{\\text{s}^2}\\)",
+     type:"mcq",options:["\\(\\dfrac{\\text{kg}\\cdot\\text{m}}{\\text{s}}\\)","\\(\\dfrac{\\text{kg}\\cdot\\text{m}^2}{\\text{s}}\\)","\\(\\dfrac{\\text{kg}\\cdot\\text{m}}{\\text{s}^2}\\)"],correct:2},
+    {q:"What are the units of moments?",
+     a:"\\(\\text{N}\\cdot\\text{m} = \\dfrac{\\text{kg}\\cdot\\text{m}^2}{\\text{s}^2}\\)&nbsp; (energy units)",
+     type:"mcq",options:["m","\\(\\dfrac{\\text{kg}\\cdot\\text{m}^3}{\\text{s}^2}\\)","N&middot;m"],correct:2},
+    {q:"What allows to measure a force?",
+     a:"&bull; A weight: YES<br>&bull; A spring: YES<br>&bull; Strain gauges: YES",type:"open"},
+    {q:"How does the point of application of forces transform from actual to original configuration?",
+     a:"By the <b>inverse motion</b> \\(\\underline{y}^{-1}(\\underline{y},t)\\)",
+     type:"mcq",options:["By the inverse motion \\(\\underline{y}^{-1}(\\underline{y},t)\\)","By \\(\\underline{\\underline{F}}^*\\)","By the Jacobian \\(J(\\underline{x},t)\\)"],correct:0},
+    {q:"How is the inertial moment defined?",
+     a:"<b>Time derivative of angular momentum</b>: \\(\\dfrac{d\\,{}^o\\hat{\\underline{l}}}{dt}\\)",
+     type:"mcq",options:["Tensor of inertia times angular velocity","Time derivative of angular momentum","Gradient of the angular momentum"],correct:1},
+    {q:"Do inertial forces depend on the referential?",
+     a:"<b>Yes</b> &mdash; \\(\\ddot{\\underline{y}}\\) is not objective (depends on the reference frame)",
+     type:"mcq",options:["Yes","No","Sometimes"],correct:0},
+    {q:"How are inertial forces transformed in a new coordinate system?",
+     a:"\\(\\hat{\\underline{f}} = \\underline{\\underline{Q}}^T\\underline{f}\\) &mdash; forces transform as vectors",
+     type:"mcq",options:["\\(\\hat{\\underline{f}}=\\underline{f}\\)","\\(\\hat{\\underline{f}}=\\underline{\\underline{Q}}^T\\underline{f}\\)","\\(\\hat{\\underline{f}}=\\underline{\\underline{Q}}^T(\\underline{f}-\\underline{f}_0)\\)"],correct:1},
+    {q:"How do volume force densities transform from original to actual configuration?",
+     a:"By the <b>Jacobian \\(J(\\underline{x},t)\\)</b>: \\(\\kappa_t\\,dV_t = \\kappa\\,dV\\Rightarrow \\kappa_t=\\kappa/J\\)",
+     type:"mcq",options:["By the motion \\(\\underline{y}(\\underline{x},t)\\)","By \\(\\underline{\\underline{F}}^*\\)","By the Jacobian \\(J(\\underline{x},t)\\)"],correct:2},
+    {q:"On what domain do contact forces act in 3D?",
+     a:"On a <b>surface</b> \\(\\partial\\omega_t\\)",
+     type:"mcq",options:["Point","Surface","Volume"],correct:1},
+    {q:"How are the stress vectors related in the two configurations?",
+     a:"\\(\\underline{p} = \\|\\underline{\\underline{F}}^*\\underline{n}\\|\\,\\underline{t}\\)<br>(nominal and Cauchy stress vectors differ in magnitude)",
+     type:"mcq",options:["\\(\\underline{p}=\\underline{t}\\)","\\(\\underline{p}=\\underline{\\underline{F}}^*\\underline{t}\\)","\\(\\underline{p}=\\|\\underline{\\underline{F}}^*\\underline{n}\\|\\,\\underline{t}\\)"],correct:2}
+  ]},
+  {id:8, title:"Stresses", cards:[
+    {q:"Which hypotheses are necessary to define a stress tensor?",
+     a:"&bull; The interaction with the rest of the body is represented by the stress vector: YES<br>&bull; The stress vector only depends on the normal to the surface: YES (Cauchy's postulate)",type:"open"},
+    {q:"How is the nominal stress vector defined?",
+     a:"<b>Actual force divided by original area</b>",
+     type:"mcq",options:["Actual force / original area","Original force / original area","Actual force / actual area"],correct:0},
+    {q:"How is the nominal stress vector related to the true one?",
+     a:"\\(\\underline{p}(\\underline{x},t) = \\underline{t}(\\underline{y},t)\\|\\underline{\\underline{F}}^*(\\underline{x},t)\\underline{n}(\\underline{x})\\|\\)",
+     type:"mcq",options:["\\(\\|\\underline{p}\\|=\\|\\underline{t}\\|\\)","\\(\\underline{p}=\\underline{t}\\|\\underline{\\underline{F}}^*\\underline{n}_t\\|\\)","\\(\\underline{p}=\\underline{t}\\|\\underline{\\underline{F}}^*\\underline{n}(\\underline{x})\\|\\)"],correct:2},
+    {q:"How is the nominal stress vector related to the surface normal?",
+     a:"\\(\\underline{p}(\\underline{x},t,\\underline{n}(\\underline{x})) = \\underline{\\underline{P}}(\\underline{x},t)\\underline{n}(\\underline{x})\\)",
+     type:"mcq",options:["\\(\\underline{p}=\\underline{\\underline{P}}\\underline{n}_t(\\underline{y})\\)","\\(\\underline{t}=\\underline{\\underline{T}}\\underline{n}_t(\\underline{y})\\)","\\(\\underline{p}=\\underline{\\underline{P}}\\underline{n}(\\underline{x})\\)"],correct:2},
+    {q:"What implies \\(\\sum_i \\underline{p}^i n^i A = \\underline{0}\\) for closed polyhedra?",
+     a:"The <b>divergence theorem</b>",
+     type:"mcq",options:["Mean value theorem","Divergence theorem","Pythagorean theorem"],correct:1},
+    {q:"What is the meaning of \\(T_{ij}\\)?",
+     a:"<b>Stress vector component \\(i\\) acting on surface with normal \\(j\\)</b>",
+     type:"mcq",options:["Stress vector component \\(i\\) on surface with normal \\(j\\)","Stress vector component \\(j\\) on original face normal \\(i\\)","Force component \\(j\\) on surface with normal \\(i\\)"],correct:0},
+    {q:"What is the natural configuration?",
+     a:"\\(\\underline{\\underline{P}} = \\underline{\\underline{0}}\\ \\forall\\underline{x}\\in\\Omega\\) &mdash; zero nominal stress everywhere",
+     type:"mcq",options:["\\(\\underline{\\underline{P}}=\\underline{\\underline{0}}\\ \\forall\\underline{x}\\in\\Omega\\)","\\(\\underline{\\underline{P}}=\\underline{\\underline{I}}\\ \\forall\\underline{x}\\in\\Omega\\)","\\(\\underline{\\underline{P}}=\\underline{\\underline{0}}\\ \\forall\\underline{y}\\in\\Omega_t\\)"],correct:0},
+    {q:"What is the spatial representation of hydrostatic stress (pressure \\(\\pi\\)) in explicit notation?",
+     a:"$$\\begin{pmatrix}-\\pi&0&0\\\\0&-\\pi&0\\\\0&0&-\\pi\\end{pmatrix}$$Convention: compression is negative.",
+     type:"mcq",options:["\\(\\text{diag}(-\\pi,-\\pi,-\\pi)\\)","all entries \\(-\\pi\\)","\\(\\text{diag}(+\\pi,+\\pi,+\\pi)\\)"],correct:0},
+    {q:"How is the Cauchy stress \\(\\underline{\\underline{T}}\\) connected to the Piola-Kirchhoff-1 stress \\(\\underline{\\underline{P}}\\)?",
+     a:"\\(\\underline{\\underline{T}} = J^{-1}\\underline{\\underline{P}}\\underline{\\underline{F}}^T\\) &mdash; equivalently \\(\\underline{\\underline{P}} = J\\underline{\\underline{T}}\\underline{\\underline{F}}^{-T}\\)",
+     type:"mcq",options:["\\(\\underline{\\underline{P}}=\\underline{\\underline{T}}\\underline{\\underline{F}}^*\\)","\\(\\underline{\\underline{P}}=J\\underline{\\underline{T}}\\underline{\\underline{F}}^T\\)","\\(\\underline{\\underline{T}}=J^{-1}\\underline{\\underline{P}}\\underline{\\underline{F}}^T\\)"],correct:2},
+    {q:"Homogeneous stress means:",
+     a:"\\(\\underline{\\underline{T}}(\\underline{y},t) = \\underline{\\underline{T}}(t)\\) &mdash; stress independent of position",
+     type:"mcq",options:["\\(\\underline{\\underline{T}}=-\\pi\\underline{\\underline{I}}\\)","\\(\\nabla_y\\cdot\\underline{\\underline{T}}=\\underline{0}\\)","\\(\\underline{\\underline{T}}(\\underline{y},t)=\\underline{\\underline{T}}(t)\\)"],correct:2}
+  ]},
+  {id:9, title:"Objective Stress and Invariants", cards:[
+    {q:"What is the relationship between material and nominal stress vectors?",
+     a:"\\(\\underline{s}(\\underline{x},t) = \\underline{\\underline{F}}^{-1}\\underline{p}(\\underline{x},t)\\) &mdash; inverse transformation of actual force",
+     type:"mcq",options:["\\(\\underline{s}=\\underline{\\underline{F}}^{-1}\\underline{p}\\)","\\(\\underline{s}=\\underline{\\underline{F}}^*\\underline{t}\\)","\\(\\underline{s}=\\underline{\\underline{F}}^*\\underline{p}\\)"],correct:0},
+    {q:"What is the definition of material stress in a traction experiment?",
+     a:"<b>Actual force divided by original area</b>, then transformed by \\(\\underline{\\underline{F}}^{-1}\\)<br>(original length / actual length) &times; (actual force / original area)",
+     type:"mcq",options:["Actual force / original area / (actual/original length)","Actual force / actual area","Actual force / original area"],correct:0},
+    {q:"Which expression for \\(\\underline{s}(\\underline{x},t)\\) is correct?",
+     a:"\\(\\underline{s}(\\underline{x},t) = \\underline{\\underline{S}}(\\underline{x},t)\\underline{n}(\\underline{x})\\)",
+     type:"mcq",options:["\\(\\underline{s}=\\underline{\\underline{S}}\\underline{n}(\\underline{x})\\)","\\(\\underline{s}=\\underline{\\underline{S}}\\underline{n}_t(\\underline{y})\\)","\\(\\underline{s}=\\underline{\\underline{P}}\\underline{n}(\\underline{x})\\)"],correct:0},
+    {q:"True or false: which stress tensors are symmetric?",
+     a:"&bull; \\(\\underline{\\underline{S}}=\\underline{\\underline{S}}^T\\): <b>TRUE</b> (PK2 is symmetric)<br>&bull; \\(\\underline{\\underline{P}}=\\underline{\\underline{P}}^T\\): <b>FALSE</b> (PK1 is generally not symmetric)<br>&bull; \\(\\underline{\\underline{T}}=\\underline{\\underline{T}}^T\\): <b>TRUE</b> (Cauchy is symmetric)",type:"open"},
+    {q:"What are correct relationships between material and nominal stress?",
+     a:"\\(\\underline{\\underline{P}} = \\underline{\\underline{F}}\\underline{\\underline{S}}\\) &mdash; equivalently \\(\\underline{\\underline{S}} = \\underline{\\underline{F}}^{-1}\\underline{\\underline{P}}\\)",
+     type:"mcq",options:["\\(\\underline{\\underline{P}}=\\underline{\\underline{S}}\\underline{\\underline{F}}\\)","\\(\\underline{\\underline{S}}=\\underline{\\underline{F}}^{-1}\\underline{\\underline{P}}\\)","\\(\\underline{\\underline{P}}=\\underline{\\underline{F}}\\underline{\\underline{S}}\\)"],correct:2},
+    {q:"Under which condition are the different stresses equivalent?",
+     a:"When \\(\\underline{\\underline{F}}\\approx\\underline{\\underline{I}}\\) (infinitesimal strains): \\(\\underline{\\underline{P}}\\approx\\underline{\\underline{T}}\\approx\\underline{\\underline{S}}\\equiv\\underline{\\underline{\\sigma}}\\)",
+     type:"mcq",options:["\\(\\underline{\\underline{F}}\\approx\\underline{\\underline{0}}\\)","\\(\\underline{y}=\\underline{\\underline{R}}\\underline{x}+\\underline{b}\\)","\\(\\underline{\\underline{F}}\\approx\\underline{\\underline{I}}\\)"],correct:2},
+    {q:"Which stress measures are invariants?",
+     a:"&bull; \\(\\text{tr}\\underline{\\underline{S}}\\): YES (trace = sum of eigenvalues)<br>&bull; \\(\\det\\underline{\\underline{\\sigma}}\\): YES (product of eigenvalues)<br>&bull; Stress eigenvalues: YES (principal stresses, frame-independent)",type:"open"},
+    {q:"What are properties of von Mises stress?",
+     a:"&bull; Positive: <b>YES</b><br>&bull; Pressure sensitive: <b>NO</b> (deviatoric, pressure-independent)<br>&bull; Tensorial: <b>NO</b> (it is a scalar)",type:"open"},
+    {q:"What do you need from the experiment to calculate material stress from nominal stress?",
+     a:"The <b>gradient of the transformation \\(\\underline{\\underline{F}}\\)</b>: \\(\\underline{\\underline{S}}=\\underline{\\underline{F}}^{-1}\\underline{\\underline{P}}\\)",
+     type:"mcq",options:["Gradient of the transformation","Rotation","Translation"],correct:0},
+    {q:"Which stress tensors are material (map original to original config)?",
+     a:"<b>\\(\\underline{\\underline{S}}\\)</b> (PK2)<br>\\(J\\underline{\\underline{R}}^T\\underline{\\underline{T}}\\underline{\\underline{R}}\\)<br>\\(\\underline{\\underline{R}}^T\\underline{\\underline{P}}\\)<br>All map \\(\\Omega\\to\\Omega\\).",type:"open"}
+  ]},
+  {id:10, title:"Constitutive Laws", cards:[
+    {q:"What is the appropriate size of an RVE?",
+     a:"<b>Both</b>: 10x smaller than body dimensions AND 10x larger than the microstructure",
+     type:"mcq",options:["10x smaller than the dimensions of \\(\\Omega\\)","10x larger than the microstructure","Both"],correct:2},
+    {q:"What is a periodic RVE?",
+     a:"A <b>repeated unit cell filling space</b>",
+     type:"mcq",options:["Repeated unit cell filling space","Cubic symmetry","Periodic manufacturing"],correct:0},
+    {q:"Which strain rate is not objective?",
+     a:"\\(\\dot{\\underline{\\underline{F}}}\\) &mdash; it is not invariant under change of reference frame",
+     type:"mcq",options:["\\(\\dot{\\underline{\\underline{F}}}\\)","\\(\\dot{\\underline{\\underline{E}}}\\)","\\(\\dot{\\underline{\\underline{U}}}\\)"],correct:0},
+    {q:"Which constitutive law is homogeneous?",
+     a:"\\(\\underline{\\underline{S}}(\\underline{\\underline{E}},\\dot{\\underline{\\underline{E}}},\\underline{\\underline{E}}^p)\\) &mdash; material variables, no dependence on \\(\\underline{x}\\) or \\(\\underline{y}\\)",
+     type:"mcq",options:["\\(\\underline{\\underline{P}}(\\underline{x},\\underline{\\underline{F}},\\dot{\\underline{\\underline{F}}})\\)","\\(\\underline{\\underline{S}}(\\underline{\\underline{E}},\\dot{\\underline{\\underline{E}}},\\underline{\\underline{E}}^p)\\)","\\(\\dot{\\underline{\\underline{T}}}(\\underline{y},\\underline{\\underline{D}})\\)"],correct:1},
+    {q:"What is an isotropic constitutive model?",
+     a:"\\(\\underline{\\underline{P}}(\\underline{\\underline{R}}\\underline{\\underline{F}}\\underline{\\underline{R}}^T) = \\underline{\\underline{R}}\\underline{\\underline{P}}(\\underline{\\underline{F}})\\underline{\\underline{R}}^T\\) &mdash; response is independent of material orientation",
+     type:"mcq",options:["\\(\\underline{\\underline{P}}(\\underline{\\underline{R}}\\underline{\\underline{F}}\\underline{\\underline{R}}^T)=\\underline{\\underline{R}}\\underline{\\underline{P}}(\\underline{\\underline{F}})\\underline{\\underline{R}}^T\\)","\\(\\underline{\\underline{P}}(\\underline{\\underline{R}}\\underline{\\underline{F}}\\underline{\\underline{R}}^T)=\\underline{\\underline{P}}(\\underline{\\underline{F}})\\)","\\(\\underline{\\underline{P}}(\\underline{\\underline{R}}\\underline{\\underline{F}})=\\underline{\\underline{R}}\\underline{\\underline{P}}(\\underline{\\underline{F}})\\)"],correct:0},
+    {q:"What is a conservative constitutive law?",
+     a:"All of: derives from a free energy potential &bull; instantaneously reversible &bull; stress state is path-independent &bull; dissipation vanishes",type:"open"},
+    {q:"What is a standard generalised material?",
+     a:"Determined by <b>both</b> a free energy potential <b>and</b> a dissipation potential",
+     type:"mcq",options:["Defined by a free energy potential only","Defined by a dissipation potential only","Determined by both potentials"],correct:2},
+    {q:"What is mechanical damage?",
+     a:"<b>Reduced stiffness</b> (decreased elastic modulus \\(E\\))",
+     type:"mcq",options:["Irreversible strains","Reduced weight-bearing area","Reduced stiffness"],correct:2},
+    {q:"What does positivity of the stiffness tensor imply on Poisson's ratio \\(\\nu\\)?",
+     a:"\\(-1 < \\nu < \\dfrac{1}{2}\\)<br>(from positivity of the compliance tensor)",
+     type:"mcq",options:["\\(0<\\nu<1\\)","\\(0<\\nu<\\frac{1}{2}\\)","\\(-1<\\nu<\\frac{1}{2}\\)"],correct:2},
+    {q:"What is the shear modulus \\(\\mu\\)?",
+     a:"\\(\\mu = \\dfrac{E}{2(1+\\nu)}\\)<br>Ratio of shear stress over <b>shear angle</b> (not shear strain)",
+     type:"mcq",options:["Ratio of shear stress over shear angle","Ratio of shear strain over shear stress","Ratio of shear stress over relative change of volume"],correct:0}
+  ]},
+  {id:11, title:"Equilibrium and Thermodynamics", cards:[
+    {q:"Which expression is similar to the actual volume force on \\(\\omega_t\\)?",
+     a:"\\(\\int_{\\omega_t}\\nabla_y\\cdot\\underline{\\underline{T}}\\,dV_t\\) &mdash; by divergence theorem = contact force density in actual config",
+     type:"mcq",options:["\\(\\int_\\omega\\underline{\\kappa}(\\underline{x},t)dV\\)","\\(\\int_{\\Omega_t}\\underline{\\kappa}_t(\\underline{y},t)dV_t\\)","\\(\\int_{\\omega_t}\\nabla_y\\cdot\\underline{\\underline{T}}\\,dV_t\\)"],correct:2},
+    {q:"Which is the local contact force on \\(\\omega\\)?",
+     a:"\\(\\int_{\\partial\\omega}\\underline{p}\\,dA\\) &mdash; contact force on sub-domain \\(\\omega\\) = integral of stress vector over its boundary<br><br>By divergence theorem: \\(\\int_{\\partial\\omega}\\underline{\\underline{P}}\\underline{n}\\,dA = \\int_\\omega\\nabla_x\\cdot\\underline{\\underline{P}}\\,dV\\)<br>(Note: option C has \\(\\Omega\\) = whole body, not \\(\\omega\\) = sub-domain)",
+     type:"mcq",options:["\\(\\int_{\\partial\\omega}\\underline{p}\\,dA\\)","\\(\\int_\\Gamma\\underline{p}(\\underline{x},t)dA\\)","\\(\\int_\\Omega\\nabla_x\\cdot\\underline{\\underline{P}}\\,dV\\)"],correct:0},
+    {q:"What is the degree of the differential equilibrium equation with respect to time?",
+     a:"Degree <b>2</b> &mdash; \\(\\rho\\ddot{\\underline{y}}\\) contains the second time derivative",
+     type:"mcq",options:["1","2","3"],correct:1},
+    {q:"What is the unknown function in the equilibrium equation?",
+     a:"\\(\\underline{u}(\\underline{x},t)\\) (or equivalently \\(\\underline{y}(\\underline{x},t)\\)) &mdash; the displacement field",
+     type:"mcq",options:["\\(\\underline{\\underline{P}}(\\underline{x},t)\\)","\\(\\underline{u}(\\underline{x},t)\\)","\\(\\underline{\\underline{H}}(\\underline{x},t)\\)"],correct:1},
+    {q:"What is missing in \\(\\rho\\ddot{\\underline{y}} - \\underline{\\kappa} - \\nabla_x\\cdot\\underline{\\underline{P}} = \\underline{0}\\)?",
+     a:"\\(\\forall\\underline{x}\\in\\Omega\\ \\forall t\\) &mdash; the equation must hold for all points in the body and all time",
+     type:"mcq",options:["\\(\\forall t\\)","\\(\\forall\\underline{x}\\in\\Gamma\\ \\forall t\\)","\\(\\forall\\underline{x}\\in\\Omega\\ \\forall t\\)"],correct:2},
+    {q:"Which variable is a thermodynamical state variable?",
+     a:"\\(\\underline{\\underline{F}}\\) &mdash; it describes the deformation state. \\(t\\) is a parameter; \\(\\dot{\\underline{\\underline{F}}}\\) is a rate, not a state variable.",
+     type:"mcq",options:["\\(t\\)","\\(\\underline{\\underline{F}}\\)","\\(\\dot{\\underline{\\underline{F}}}\\)"],correct:1},
+    {q:"What is the global statement of the first thermodynamical principle?",
+     a:"\\(\\dot{E}^{\\text{tot}}(\\Omega,t) = \\dot{W}^{\\text{ext}}(\\Omega,t)\\ \\forall t\\)<br>Total energy rate = external power",
+     type:"mcq",options:["\\(\\dot{E}^{\\text{tot}}=\\dot{W}^{\\text{ext}}\\)","\\(\\dot{E}^{\\text{int}}=\\dot{W}^{\\text{int}}\\)","\\(\\dot{E}^{\\text{kin}}=\\dot{W}^{\\text{ext}}\\)"],correct:0},
+    {q:"What is the strain conjugate to the Piola-Kirchhoff-2 stress \\(\\underline{\\underline{S}}\\)?",
+     a:"The <b>Green-Lagrange strain \\(\\underline{\\underline{E}}\\)</b>: \\(\\dot{W}^{\\text{int}}=\\int_\\Omega\\underline{\\underline{S}}:\\dot{\\underline{\\underline{E}}}\\,dV\\)",
+     type:"mcq",options:["Biot strain \\(\\underline{\\underline{U}}-\\underline{\\underline{I}}\\)","Green-Lagrange strain \\(\\underline{\\underline{E}}\\)","Left Cauchy-Green strain \\(\\underline{\\underline{B}}\\)"],correct:1},
+    {q:"What is the stress conjugated to the Eulerian deformation rate \\(\\underline{\\underline{D}}\\)?",
+     a:"<b>Cauchy stress \\(\\underline{\\underline{T}}\\)</b> (option among T/P/S)<br><br>Power conjugacy: \\(\\underline{\\underline{P}}:\\dot{\\underline{\\underline{F}}} = \\underline{\\underline{S}}:\\dot{\\underline{\\underline{E}}} = J\\underline{\\underline{T}}:\\underline{\\underline{D}}\\)<br>Exact conjugate to \\(\\underline{\\underline{D}}\\) is \\(J\\underline{\\underline{T}}\\) (Kirchhoff stress), which belongs to the Cauchy family.",type:"open"},
+    {q:"What is the local form of the second thermodynamical principle?",
+     a:"\\(\\Phi(\\underline{x},t)\\geq 0\\ \\forall\\underline{x}\\in\\Omega\\ \\forall t\\)<br>(internal dissipation is non-negative everywhere)",type:"open"}
+  ]},
+  {id:12, title:"Boundary Value Problems", cards:[
+    {q:"What is a static problem?",
+     a:"\\(\\underline{\\kappa}(\\underline{x},t)=\\underline{0}\\ \\forall\\underline{x}\\in\\Omega\\) &mdash; no inertial forces (no body acceleration)",
+     type:"mcq",options:["\\(\\dot{\\underline{y}}(\\underline{x},t)=\\underline{0}\\)","\\(\\underline{\\kappa}(\\underline{x},t)=\\underline{0}\\)","\\(\\underline{p}(\\underline{x},t)=\\underline{0}\\)"],correct:1},
+    {q:"What characterises an infinitesimal motion?",
+     a:"\\(\\underline{\\underline{R}}\\cong\\underline{\\underline{I}}\\) AND \\(\\underline{\\underline{U}}\\cong\\underline{\\underline{I}}\\) &mdash; both rotation and stretch are approximately identity",
+     type:"mcq",options:["\\(\\underline{\\underline{R}}\\cong\\underline{\\underline{I}}\\) and \\(\\underline{\\underline{U}}\\neq\\underline{\\underline{I}}\\)","\\(\\underline{\\underline{R}}\\neq\\underline{\\underline{I}}\\) and \\(\\underline{\\underline{U}}\\cong\\underline{\\underline{I}}\\)","\\(\\underline{\\underline{R}}\\cong\\underline{\\underline{I}}\\) and \\(\\underline{\\underline{U}}\\cong\\underline{\\underline{I}}\\)"],correct:2},
+    {q:"Which objective stress-strain pair can be used in a moderate strain problem?",
+     a:"\\(\\underline{\\underline{S}} - \\underline{\\underline{E}}\\) (PK2 - Green-Lagrange) &mdash; both material, objective",
+     type:"mcq",options:["\\(\\underline{\\underline{S}}-\\underline{\\underline{E}}\\)","\\(\\underline{\\underline{P}}-\\ln\\underline{\\underline{U}}\\)","\\(\\underline{\\underline{\\sigma}}-\\underline{\\underline{\\varepsilon}}\\)"],correct:0},
+    {q:"When is local equilibrium of the affine tetrahedron verified?",
+     a:"When <b>inertia balances volume forces everywhere</b>: \\(\\rho\\ddot{\\underline{y}}-\\underline{\\kappa}=\\underline{0}\\) so that \\(\\nabla_x\\cdot\\underline{\\underline{P}}=\\underline{0}\\)",
+     type:"mcq",options:["For rigid body motion","In the absence of contact forces and moments","Inertia balances volume forces everywhere"],correct:2},
+    {q:"What is not necessary in a static BVP?",
+     a:"<b>Initial conditions</b> &mdash; a static problem has no time evolution",
+     type:"mcq",options:["Constitutive model","Initial conditions","Boundary conditions"],correct:1},
+    {q:"What is the function \\(\\underline{u}(\\underline{x},t)\\)?",
+     a:"The <b>boundary condition</b> \\(\\bar{\\underline{u}}(\\underline{x},t)\\) on \\(\\Gamma_u\\) &mdash; prescribed displacement",
+     type:"mcq",options:["Initial condition","Boundary condition","Constitutive function"],correct:1},
+    {q:"What conditions are necessary for the differential equation of \\(\\underline{u}(\\underline{x},t)\\) to be linear?",
+     a:"&bull; Volume forces must be linear in \\(\\underline{u}\\): YES<br>&bull; \\(\\underline{\\underline{P}}\\) must be linear with respect to \\(\\underline{\\underline{H}}\\): YES (material linearity)<br>&bull; Inertial forces must vanish: NO (inertial forces can be included and are linear in \\(\\underline{u}\\))",type:"open"},
+    {q:"What condition must a virtual velocity fulfill?",
+     a:"\\(\\delta\\dot{\\underline{u}}(\\underline{x},t)=\\underline{0}\\ \\forall\\underline{x}\\in\\Gamma_u\\ \\forall t\\) &mdash; vanishes on displacement boundary",
+     type:"mcq",options:["\\(\\delta\\dot{\\underline{u}}=\\underline{0}\\ \\forall\\underline{x}\\in\\Gamma_u\\ \\forall t\\)","\\(\\delta\\dot{\\underline{u}}=\\underline{0}\\ \\forall\\underline{x}\\in\\Omega_u\\ \\forall t\\)","\\(\\delta\\dot{\\underline{u}}(\\underline{x},0)=\\underline{0}\\ \\forall\\underline{x}\\in\\Gamma_u\\)"],correct:0},
+    {q:"What is the algebraic nature of the principle of virtual power?",
+     a:"<b>Scalar</b> &mdash; the equation \\(\\int_\\Omega\\delta\\dot{\\underline{u}}\\cdot(\\rho\\ddot{\\underline{y}}-\\underline{\\kappa}-\\nabla_x\\cdot\\underline{\\underline{P}})dV=0\\) is scalar",
+     type:"mcq",options:["Scalar","Vectorial","Tensorial"],correct:0},
+    {q:"Do BVPs have a unique solution for \\(\\underline{u}(\\underline{x},t)\\)?",
+     a:"<b>Under some conditions</b> &mdash; polyconvexity of the free energy potential is required for uniqueness",
+     type:"mcq",options:["Never","Under some conditions","Always"],correct:1}
+  ]}
+];
+
+var starred=JSON.parse(localStorage.getItem("sm_starred")||"{}");
+var selected=new Set([0]);
+var deck=[];
+var current=0;
+var flipped=false;
+var mcqDone=false;
+var starOnlyMode=false;
+
+function saveStarred(){localStorage.setItem("sm_starred",JSON.stringify(starred));}
+function cardKey(qid,cid){return"q"+qid+"_c"+cid;}
+function isStarred(qid,cid){return!!starred[cardKey(qid,cid)];}
+function toggleStarCard(qid,cid){var k=cardKey(qid,cid);if(starred[k]){delete starred[k];}else{starred[k]=true;}saveStarred();}
+function totalStarCount(){return Object.keys(starred).length;}
+function typeset(el){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([el]).catch(function(){});}}
+
+function buildHome(){
+  var grid=document.getElementById("quizGrid");
+  grid.innerHTML="";
+  QUIZZES.forEach(function(q,i){
+    var div=document.createElement("div");
+    div.className="quiz-card"+(selected.has(i)?" selected":"");
+    div.innerHTML="<div class=\"qnum\">Quiz "+String(q.id).padStart(2,"0")+"</div><div class=\"qtitle\">"+q.title+"</div><div class=\"qcount\">"+q.cards.length+" cards</div><div class=\"check\"><svg viewBox=\"0 0 12 9\"><polyline points=\"1,4.5 4.5,8 11,1\" stroke=\"white\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></div>";
+    div.onclick=function(){if(selected.has(i)){selected.delete(i);}else{selected.add(i);}buildHome();};
+    grid.appendChild(div);
+  });
+  var sc=totalStarCount();
+  var sob=document.getElementById("starOnlyBtn");
+  var si=document.getElementById("starsInfo");
+  if(sc>0){sob.disabled=false;si.style.display="flex";document.getElementById("starsInfoText").textContent="You have "+sc+" starred card"+(sc>1?"s":"")+" across all quizzes.";}
+  else{sob.disabled=true;si.style.display="none";}
+  document.getElementById("startBtn").disabled=selected.size===0;
+}
+
+function selectAll(){QUIZZES.forEach(function(_,i){selected.add(i);});buildHome();}
+function deselectAll(){selected.clear();buildHome();}
+function goHome(){show("home");buildHome();}
+
+function startStudy(starsOnly){
+  starOnlyMode=starsOnly;deck=[];
+  if(starsOnly){QUIZZES.forEach(function(q,qi){q.cards.forEach(function(c,ci){if(isStarred(qi,ci)){deck.push(Object.assign({},c,{qid:qi,cid:ci}));}});});}
+  else{selected.forEach(function(qi){QUIZZES[qi].cards.forEach(function(c,ci){deck.push(Object.assign({},c,{qid:qi,cid:ci}));});});}
+  if(deck.length===0){alert("No cards to study!");return;}
+  current=0;show("study");
+  var te=document.getElementById("studyTitle");
+  if(starsOnly){te.textContent="Starred cards";}
+  else if(selected.size===QUIZZES.length){te.textContent="All quizzes";}
+  else{var ns=[];selected.forEach(function(i){ns.push("Quiz "+String(QUIZZES[i].id).padStart(2,"0"));});te.textContent=ns.join(" + ");}
+  showCard();
+}
+
+function showCard(){
+  flipped=false;mcqDone=false;
+  var c=deck[current];
+  var body=document.getElementById("cardBody");
+  body.classList.remove("flipped");body.style.pointerEvents="";
+  var qEl=document.getElementById("cardQ");qEl.innerHTML=c.q;typeset(qEl);
+  document.getElementById("cardA").innerHTML=c.a;
+  var sb=document.getElementById("starBtn2");
+  if(isStarred(c.qid,c.cid)){sb.classList.add("starred");}else{sb.classList.remove("starred");}
+  var mcqArea=document.getElementById("mcqArea");
+  var hint=document.getElementById("hintText");
+  if(c.type==="mcq"){
+    body.style.pointerEvents="none";hint.textContent="Choose the correct answer";
+    mcqArea.style.display="block";
+    // Shuffle options
+    var indices=c.options.map(function(_,i){return i;});
+    for(var si=indices.length-1;si>0;si--){var sj=Math.floor(Math.random()*(si+1));var tmp=indices[si];indices[si]=indices[sj];indices[sj]=tmp;}
+    var shuffledCorrect=indices.indexOf(c.correct);
+    mcqArea.innerHTML=indices.map(function(origIdx,dispIdx){return"<button class=\"mcq-opt\" id=\"mopt"+dispIdx+"\" onclick=\"answerMCQ("+dispIdx+","+shuffledCorrect+")\">"+c.options[origIdx]+"</button>";}).join("");
+    mcqArea.querySelectorAll(".mcq-opt").forEach(function(b){typeset(b);});
+  }else{hint.textContent="Click the card to reveal the answer";mcqArea.style.display="none";mcqArea.innerHTML="";}
+  updateProgress();updateStarCount();
+  document.getElementById("prevArrow").disabled=current===0;
+  document.getElementById("nextArrow").disabled=current===deck.length-1;
+}
+
+function handleCardClick(){
+  if(deck[current]&&deck[current].type==="mcq")return;
+  if(flipped){flipped=false;document.getElementById("cardBody").classList.remove("flipped");document.getElementById("hintText").textContent="Click the card to reveal the answer";}
+  else{flipped=true;document.getElementById("cardBody").classList.add("flipped");typeset(document.getElementById("cardA"));document.getElementById("hintText").textContent="Click again to see the question";}
+}
+
+function answerMCQ(idx,shuffledCorrect){
+  if(mcqDone)return;mcqDone=true;
+  var c=deck[current];
+  var btns=document.querySelectorAll(".mcq-opt");
+  btns.forEach(function(b){b.disabled=true;});
+  btns[shuffledCorrect].classList.add("correct");
+  if(idx!==shuffledCorrect){btns[idx].classList.add("wrong");}
+  document.getElementById("cardBody").classList.add("flipped");
+  document.getElementById("cardBody").style.pointerEvents="none";
+  typeset(document.getElementById("cardA"));
+  document.getElementById("hintText").textContent=idx===c.correct?"Correct!":"Wrong - see the answer above";
+  flipped=true;
+  if(current===deck.length-1){setTimeout(showFinish,1000);}
+}
+
+function navigate(dir){
+  var next=current+dir;
+  if(next<0||next>=deck.length)return;
+  current=next;showCard();
+}
+
+function toggleStar(){
+  var c=deck[current];toggleStarCard(c.qid,c.cid);
+  var sb=document.getElementById("starBtn2");
+  if(isStarred(c.qid,c.cid)){sb.classList.add("starred");}else{sb.classList.remove("starred");}
+  updateStarCount();
+}
+
+function updateProgress(){
+  var pct=((current+1)/deck.length)*100;
+  document.getElementById("progressFill").style.width=pct+"%";
+  document.getElementById("progressLabel").textContent=(current+1)+" / "+deck.length;
+}
+
+function updateStarCount(){
+  var sc=totalStarCount();
+  document.getElementById("starCountNum").textContent=sc;
+  document.getElementById("starCountBadge").style.display=sc>0?"flex":"none";
+}
+
+function showFinish(){
+  show("finish");var sc=totalStarCount();
+  document.getElementById("finishTitle").textContent=starOnlyMode?"Starred review complete!":"Session complete!";
+  document.getElementById("finishSub").textContent=sc>0?"You have "+sc+" starred card"+(sc>1?"s":"")+" to review.":"No starred cards - you are good!";
+  document.getElementById("reviewStarsBtn").style.display=sc>0?"inline-flex":"none";
+}
+
+function restartSame(){current=0;show("study");showCard();}
+
+function show(id){document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});document.getElementById(id).classList.add("active");}
+
+buildHome();
+
+document.addEventListener("keydown",function(e){
+  var screen=document.querySelector(".screen.active");
+  if(!screen||screen.id!=="study")return;
+  if(e.target.tagName==="BUTTON"||e.target.tagName==="INPUT")return;
+  if(e.key==="ArrowRight"||e.key==="ArrowDown"){e.preventDefault();navigate(1);}
+  else if(e.key==="ArrowLeft"||e.key==="ArrowUp"){e.preventDefault();navigate(-1);}
+  else if(e.key===" "){e.preventDefault();handleCardClick();}
+  else if(e.key==="s"||e.key==="S"){e.preventDefault();toggleStar();}
+});
+</script>
+</body>
+</html>
