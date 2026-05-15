@@ -348,7 +348,7 @@ function cardKey(qid,cid){return"q"+qid+"_c"+cid;}
 function isStarred(qid,cid){return!!starred[cardKey(qid,cid)];}
 function toggleStarCard(qid,cid){var k=cardKey(qid,cid);if(starred[k]){delete starred[k];}else{starred[k]=true;}saveStarred();}
 function totalStarCount(){return Object.keys(starred).length;}
-function typeset(el){if(window.MathJax&&MathJax.typesetPromise){MathJax.typesetPromise([el]).catch(function(){});}}
+function typeset(el){if(window.MathJax&&MathJax.typesetPromise){if(MathJax.typesetClear){MathJax.typesetClear([el]);}MathJax.typesetPromise([el]).catch(function(){});}}
 
 function buildHome(){
   var grid=document.getElementById("quizGrid");grid.innerHTML="";
